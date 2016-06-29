@@ -21,6 +21,12 @@ import org.apache.commons.lang.StringUtils;
  */
 public class MakeTuplas {
 
+    /**
+     * Pasar la estructura de una tabla PostgreSQL a un objeto JSON
+     * @param tabla
+     * @return
+     * @throws SQLException 
+     */
     public JSONObject ReadBodyTable(String tabla) throws SQLException {
         
         pruConn myConn= new pruConn("poliza-net","polizanet","yo");
@@ -48,27 +54,79 @@ public class MakeTuplas {
     }
     
     /**
-     * @param args the command line arguments
+     * Crear el esqueleto de la clase controlador del código SQL
+     * @param obj con los campos de la tabla y sus tipos de datos
+     * @param tabla
+     * @throws IOException 
      */
-    public static void main(String[] args) throws IOException, SQLException {
+    public void MakeSQL(JSONObject obj, String tabla) throws IOException{
+        
+        String sFichero = "sql.java";
+        BufferedWriter bw = new BufferedWriter(new FileWriter(sFichero));
+        String sNombreClass= "SQL"+StringUtils.capitalize(tabla);
+        
+        // public class SQLCias extends PoolConn {
+        bw.write("public class " + sNombreClass + " extends PoolConn {\n");
+        bw.write("\n");
+        bw.write("private final String version;\n");
+        bw.write("\n");
+        bw.write("public "+sNombreClass+"(String myPool) throws SQLException, NamingException {\n");
+        bw.write("super(myPool);\n");
+        bw.write("this.version = myPool;\n");
+        bw.write("}\n");
+        bw.write("\n");
+        
+        // Crear un bloque de lista de tuplas
+        bw.write("public List<Tuplas"+StringUtils.capitalize(tabla)+"> getLista"+StringUtils.capitalize(tabla)+"() throws SQLException {\n");
+        bw.write("Connection conn = PGconectar();\n");
+        bw.write("List<Tuplas"+StringUtils.capitalize(tabla)+"> tp = new ArrayList<>();\n");
+        
+        bw.write("try {\n");
+         
 
-        // leer la estructura de la tabla
-        MakeTuplas mt = new MakeTuplas();
-        JSONObject obj= mt.ReadBodyTable(args[0]);
+            bw.write("PreparedStatement st = conn.prepareStatement(\"SELECT * from "+tabla+"\");\n");
+            
+            bw.write("ResultSet rs = st.executeQuery();\n");
         
-        //System.out.print(obj.size());
-        /*
-        for (Object key : obj.keySet()) {
-            System.out.print(key.toString() + obj.get(key));
-        }*/
+            
+            bw.write("while (rs.next()) {\n");
+                
+                bw.write("tp.add( new Tuplas"+StringUtils.capitalize(tabla)+".\n");
+                        bw.write("Builder().\n");
+                        bw.write("build()\n");
+                         bw.write(");\n");
+                
+            bw.write("}\n");
+            
+        bw.write("} catch (SQLException e) {\n");
+
+            bw.write("System.out.println(\""+tabla+" Connection Failed!\");\n");
+
+        bw.write("} finally {\n");
+
+            bw.write("conn.close();\n");
+        bw.write("}\n");
         
-        
+        bw.write("return tp;\n");
+        bw.write("}\n");
+        bw.close();
+    
+    }
+    
+    /**
+     * Crea un fichero con la clase de las tuplas de una tabla PostgreSQL
+     * @param obj
+     * @param tabla
+     * @throws IOException 
+     */
+    public void MakeTuplasClass(JSONObject obj, String tabla) throws IOException
+    {
         String sFichero = "tuplas.java";
         String sNombreClass= "Tuplas";
         BufferedWriter bw = new BufferedWriter(new FileWriter(sFichero));
         
         // escribir la cabecera de la clase
-        sNombreClass=sNombreClass+StringUtils.capitalize(args[0]);
+        sNombreClass=sNombreClass+StringUtils.capitalize(tabla);
         
         bw.write("public class " + sNombreClass + " {");
         bw.write("\n");
@@ -135,6 +193,44 @@ public class MakeTuplas {
         // cerrar el pie de la clase
         bw.write("}\n");
         bw.close();
+    }
+    
+    
+    /**
+     * Construir la clase serializable bean
+     * @param obj
+     * @param tabla
+     * @throws IOException 
+     */
+    public void MakeBean(JSONObject obj, String tabla) throws IOException
+    {
+        String sFichero = "bean.java";
+        BufferedWriter bw = new BufferedWriter(new FileWriter(sFichero));
+        String sNombreClass= "Bean"+StringUtils.capitalize(tabla);
+        
+        bw.write("public class " + sNombreClass + " implements Serializable {\n");
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) throws IOException, SQLException {
+
+        // leer la estructura de la tabla
+        MakeTuplas mt = new MakeTuplas();
+        JSONObject obj= mt.ReadBodyTable(args[0]);
+        
+        mt.MakeTuplasClass(obj,args[0]);
+        mt.MakeSQL(obj, args[0]);
+        
+        //System.out.print(obj.size());
+        /*
+        for (Object key : obj.keySet()) {
+            System.out.print(key.toString() + obj.get(key));
+        }*/
+        
+        
+        
         
     }
     
