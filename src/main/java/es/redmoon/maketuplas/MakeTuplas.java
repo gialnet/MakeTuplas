@@ -109,6 +109,51 @@ public class MakeTuplas {
         
         bw.write("return tp;\n");
         bw.write("}\n");
+        bw.write("\n");
+        
+        
+        
+        // Crear un bloque de lista de tuplas con paginación
+        bw.write("public List<Tuplas"+StringUtils.capitalize(tabla)+"> getLista"+StringUtils.capitalize(tabla)+"(int NumPage, int SizePage, String ) throws SQLException {\n");
+        bw.write("Connection conn = PGconectar();\n");
+        bw.write("List<Tuplas"+StringUtils.capitalize(tabla)+"> tp = new ArrayList<>();\n");
+        
+        bw.write("try {\n");
+         
+
+            bw.write("int Offset = SizePage * (NumPage-1);\n");
+            bw.write("PreparedStatement st = conn.prepareStatement(\"SELECT * from "+tabla+" where estanque = ? order by id desc LIMIT ? OFFSET ?\");\n");
+            bw.write("st.setInt(1, Integer.parseInt(xEstanque) );\n");
+            bw.write("st.setInt(2, SizePage);\n");
+            bw.write("st.setInt(3, Offset);\n");
+            
+            bw.write("ResultSet rs = st.executeQuery();\n");
+        
+            
+            bw.write("while (rs.next()) {\n");
+                
+                bw.write("tp.add( new Tuplas"+StringUtils.capitalize(tabla)+".\n");
+                        bw.write("Builder().\n");
+                        bw.write("build()\n");
+                         bw.write(");\n");
+                
+            bw.write("}\n");
+            
+        bw.write("} catch (SQLException e) {\n");
+
+            bw.write("System.out.println(\""+tabla+" Connection Failed!\");\n");
+
+        bw.write("} finally {\n");
+
+            bw.write("conn.close();\n");
+        bw.write("}\n");
+        
+        bw.write("return tp;\n");
+        bw.write("}\n");
+        bw.write("\n");
+        
+        
+        bw.write("}\n");
         bw.close();
     
     }
@@ -208,7 +253,42 @@ public class MakeTuplas {
         BufferedWriter bw = new BufferedWriter(new FileWriter(sFichero));
         String sNombreClass= "Bean"+StringUtils.capitalize(tabla);
         
+        bw.write("import java.io.Serializable;\n");
+        bw.write("\n");
+        
         bw.write("public class " + sNombreClass + " implements Serializable {\n");
+        
+        bw.write("\n");
+        
+        // declaración de variables
+        for (Object key : obj.keySet()) {
+            bw.write("private String "+key.toString()+";\n");
+        }
+        
+        bw.write("\n");
+        
+        // bloque setters
+        for (Object key : obj.keySet()) {
+
+            bw.write("public String set"+StringUtils.capitalize(key.toString())+"(String "+key.toString()+") {\n");
+            bw.write("this."+key.toString()+"="+key.toString()+";\n");
+            bw.write("}\n");
+            bw.write("\n");
+        }
+        
+        // bloque getters
+        for (Object key : obj.keySet()) {
+
+            bw.write("public String get"+StringUtils.capitalize(key.toString())+"() {\n");
+            bw.write("return "+key.toString()+";\n");
+            bw.write("}\n");
+            bw.write("\n");
+        }
+        
+        // cerrar el pie de la clase
+        bw.write("}\n");
+        bw.close();
+        
     }
     
     /**
@@ -222,6 +302,7 @@ public class MakeTuplas {
         
         mt.MakeTuplasClass(obj,args[0]);
         mt.MakeSQL(obj, args[0]);
+        mt.MakeBean(obj, args[0]);
         
         //System.out.print(obj.size());
         /*
