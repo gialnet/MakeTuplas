@@ -1,50 +1,50 @@
-public class SQLSiniestros extends PoolConn {
+public class SQLDevices extends PoolConn {
 
 private final String version;
 
-public SQLSiniestros(String myPool) throws SQLException, NamingException {
+public SQLDevices(String myPool) throws SQLException, NamingException {
 super(myPool);
 this.version = myPool;
 }
 
-public List<TuplasSiniestros> getListaSiniestros() throws SQLException {
+public List<TuplasDevices> getListaDevices() throws SQLException {
 Connection conn = PGconectar();
-List<TuplasSiniestros> tp = new ArrayList<>();
+List<TuplasDevices> tp = new ArrayList<>();
 try {
-PreparedStatement st = conn.prepareStatement("SELECT * from siniestros");
+PreparedStatement st = conn.prepareStatement("SELECT * from devices");
 ResultSet rs = st.executeQuery();
 while (rs.next()) {
-tp.add( new TuplasSiniestros.
+tp.add( new TuplasDevices.
 Builder().
 build()
 );
 }
 } catch (SQLException e) {
-System.out.println("siniestros Connection Failed!");
+System.out.println("devices Connection Failed!");
 } finally {
 conn.close();
 }
 return tp;
 }
 
-public List<TuplasSiniestros> getListaSiniestros(int NumPage, int SizePage, String ) throws SQLException {
+public List<TuplasDevices> getListaDevices(int NumPage, int SizePage, String ) throws SQLException {
 Connection conn = PGconectar();
-List<TuplasSiniestros> tp = new ArrayList<>();
+List<TuplasDevices> tp = new ArrayList<>();
 try {
 int Offset = SizePage * (NumPage-1);
-PreparedStatement st = conn.prepareStatement("SELECT * from siniestros where estanque = ? order by id desc LIMIT ? OFFSET ?");
+PreparedStatement st = conn.prepareStatement("SELECT * from devices where estanque = ? order by id desc LIMIT ? OFFSET ?");
 st.setInt(1, Integer.parseInt(xEstanque) );
 st.setInt(2, SizePage);
 st.setInt(3, Offset);
 ResultSet rs = st.executeQuery();
 while (rs.next()) {
-tp.add( new TuplasSiniestros.
+tp.add( new TuplasDevices.
 Builder().
 build()
 );
 }
 } catch (SQLException e) {
-System.out.println("siniestros Connection Failed!");
+System.out.println("devices Connection Failed!");
 } finally {
 conn.close();
 }

@@ -29,7 +29,7 @@ public class MakeTuplas {
      */
     public JSONObject ReadBodyTable(String tabla) throws SQLException {
         
-        pruConn myConn= new pruConn("poliza-net","polizanet","yo");
+        pruConn myConn= new pruConn("monitor-ht","dilar_monitor","Lupita#2017#");
         Connection conn=myConn.PGconectar();
         
          PreparedStatement st = conn.prepareStatement("SELECT DISTINCT table_name, column_name,data_type,ordinal_position\n" +
